@@ -5,7 +5,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Attribute
+from core.models import Attribute, Product
 
 from product.serializers import AttributeSerializer
 
@@ -84,3 +84,50 @@ def test_create_attribute_invalid(self):
     res = self.client.post(ATTRIBUTE_URL, payload)
 
     self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+def test_retrieve_attributes_assigned_to_products(self):
+    """Test filtering attributes by those assigned to products"""
+    attribute1 = Attribute.objects.create(
+        user=self.user, name='Green'
+    )
+    attribute2 = Attribute.objects.create(
+        user=self.user, name='Red'
+    )
+    product = Product.objects.create(
+        title='Wallet',
+        time_minutes=5,
+        price=10.00,
+        user=self.user
+    )
+    product.attribute.add(attribute1)
+
+    res = self.client.get(ATTRIBUTE_URL, {'assigned_only': 1})
+
+    serializer1 = AttributeSerializer(attribute1)
+    serializer2 = AttributeSerializer(attribute2)
+    self.assertIn(serializer1.data, res.data)
+    self.assertNotIn(serializer2.data, res.data)
+
+
+def test_retrieve_attribute_assigned_unique(self):
+    """Test filtering attributes by assigned returns unique items"""
+    attribute = Attribute.objects.create(user=self.user, name='Adapter')
+    product1 = Product.objects.create(
+        title='Keyboard',
+        time_minutes=30,
+        price=12.00,
+        user=self.user
+    )
+    product1.attributes.add(attribute)
+    product2 = Product.objects.create(
+        title='Charger',
+        time_minutes=20,
+        price=5.00,
+        user=self.user
+    )
+    product2.attributes.add(attribute)
+
+    res = self.client.get(ATTRIBUTE_URL, {'assigned_only': 1})
+
+    self.assertEqual(len(res.data), 1)
