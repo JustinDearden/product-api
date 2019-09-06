@@ -6,6 +6,7 @@ from product import views
 
 router = DefaultRouter()
 router.register('tags', views.TagViewSet)
+router.register('attributes', views.AttributeViewSet)
 
 app_name = 'product'
 
