@@ -2,7 +2,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Tag, Attribute
+from core.models import Tag, Attribute, Product
 
 from product import serializers
 
@@ -33,3 +33,15 @@ class AttributeViewSet(BaseAttributeViewSet):
     """Manage ingredients in the database"""
     queryset = Attribute.objects.all()
     serializer_class = serializers.AttributeSerializer
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    """Manage products in the database"""
+    serializer_class = serializers.ProductSerializer
+    queryset = Product.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        """Retrieve the products for the authenticated user"""
+        return self.queryset.filter(user=self.request.user)
