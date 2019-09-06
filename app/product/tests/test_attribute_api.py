@@ -64,3 +64,23 @@ class PrivateAttributesApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['name'], attribute.name)
+
+
+def test_create_attribute_successful(self):
+    """Test creating a new attribute"""
+    payload = {'name': 'Fan'}
+    self.client.post(ATTRIBUTE_URL, payload)
+
+    exists = Attribute.objects.filter(
+        user=self.user,
+        name=payload['name']).exists()
+    self.assertTrue(exists)
+
+
+def test_create_attribute_invalid(self):
+    """Test creating invalid attribute fails"""
+    payload = {'name': ''}
+
+    res = self.client.post(ATTRIBUTE_URL, payload)
+
+    self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
